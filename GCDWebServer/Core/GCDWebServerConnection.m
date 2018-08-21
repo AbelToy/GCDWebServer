@@ -170,17 +170,21 @@ NS_ASSUME_NONNULL_END
 
   if (_response) {
     [self _initializeResponseHeadersWithStatusCode:_response.statusCode];
-    if (_response.lastModifiedDate) {
-      CFHTTPMessageSetHeaderFieldValue(_responseMessage, CFSTR("Last-Modified"), (__bridge CFStringRef)GCDWebServerFormatRFC822((NSDate*)_response.lastModifiedDate));
-    }
-    if (_response.eTag) {
-      CFHTTPMessageSetHeaderFieldValue(_responseMessage, CFSTR("ETag"), (__bridge CFStringRef)_response.eTag);
-    }
-    if ((_response.statusCode >= 200) && (_response.statusCode < 300)) {
-      if (_response.cacheControlMaxAge > 0) {
-        CFHTTPMessageSetHeaderFieldValue(_responseMessage, CFSTR("Cache-Control"), (__bridge CFStringRef)[NSString stringWithFormat:@"max-age=%i, public", (int)_response.cacheControlMaxAge]);
-      } else {
-        CFHTTPMessageSetHeaderFieldValue(_responseMessage, CFSTR("Cache-Control"), CFSTR("no-cache"));
+    if (_response.cacheDisabled) {
+      CFHTTPMessageSetHeaderFieldValue(_responseMessage, CFSTR("Cache-Control"), CFSTR("no-store, must-revalidate"));
+    } else {
+      if (_response.lastModifiedDate) {
+        CFHTTPMessageSetHeaderFieldValue(_responseMessage, CFSTR("Last-Modified"), (__bridge CFStringRef)GCDWebServerFormatRFC822((NSDate*)_response.lastModifiedDate));
+      }
+      if (_response.eTag) {
+        CFHTTPMessageSetHeaderFieldValue(_responseMessage, CFSTR("ETag"), (__bridge CFStringRef)_response.eTag);
+      }
+      if ((_response.statusCode >= 200) && (_response.statusCode < 300)) {
+        if (_response.cacheControlMaxAge > 0) {
+          CFHTTPMessageSetHeaderFieldValue(_responseMessage, CFSTR("Cache-Control"), (__bridge CFStringRef)[NSString stringWithFormat:@"max-age=%i, public", (int)_response.cacheControlMaxAge]);
+        } else {
+          CFHTTPMessageSetHeaderFieldValue(_responseMessage, CFSTR("Cache-Control"), CFSTR("no-cache"));
+        }
       }
     }
     if (_response.contentType != nil) {
@@ -806,7 +810,7 @@ static inline BOOL _CompareResources(NSString* responseETag, NSString* requestET
 }
 
 - (GCDWebServerResponse*)overrideResponse:(GCDWebServerResponse*)response forRequest:(GCDWebServerRequest*)request {
-  if ((response.statusCode >= 200) && (response.statusCode < 300) && _CompareResources(response.eTag, request.ifNoneMatch, response.lastModifiedDate, request.ifModifiedSince)) {
+  if (!response.cacheDisabled && (response.statusCode >= 200) && (response.statusCode < 300) && _CompareResources(response.eTag, request.ifNoneMatch, response.lastModifiedDate, request.ifModifiedSince)) {
     NSInteger code = [request.method isEqualToString:@"HEAD"] || [request.method isEqualToString:@"GET"] ? kGCDWebServerHTTPStatusCode_NotModified : kGCDWebServerHTTPStatusCode_PreconditionFailed;
     GCDWebServerResponse* newResponse = [GCDWebServerResponse responseWithStatusCode:code];
     newResponse.cacheControlMaxAge = response.cacheControlMaxAge;

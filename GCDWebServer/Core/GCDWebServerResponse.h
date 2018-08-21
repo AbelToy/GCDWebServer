@@ -148,6 +148,13 @@ typedef void (^GCDWebServerBodyReaderCompletionBlock)(NSData* data, NSError* _Nu
 @property(nonatomic, copy, nullable) NSString* eTag;
 
 /**
+ *  If enabled, the cache headers will be ignored and set to a disabled cache.
+ *
+ *  The default value is NO.
+ */
+@property(nonatomic) BOOL cacheDisabled;
+
+/**
  *  Enables gzip encoding for the response body.
  *
  *  The default value is NO.

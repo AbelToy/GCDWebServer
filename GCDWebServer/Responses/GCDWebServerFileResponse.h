@@ -39,8 +39,6 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @interface GCDWebServerFileResponse : GCDWebServerResponse
 @property(nonatomic, copy) NSString* contentType;  // Redeclare as non-null
-@property(nonatomic) NSDate* lastModifiedDate;  // Redeclare as non-null
-@property(nonatomic, copy) NSString* eTag;  // Redeclare as non-null
 
 /**
  *  Creates a response with the contents of a file.
@@ -94,7 +92,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable instancetype)initWithFile:(NSString*)path byteRange:(NSRange)range;
 
 /**
- *  This method is the designated initializer for the class.
+ *  Initializes a response like -initWithFile: but allowing the costumization of
+ *  MIME types.
  *
  *  If MIME type overrides are specified, they allow to customize the built-in
  *  mapping from extensions to MIME types. Keys of the dictionary must be lowercased
@@ -102,6 +101,14 @@ NS_ASSUME_NONNULL_BEGIN
  *  MIME types.
  */
 - (nullable instancetype)initWithFile:(NSString*)path byteRange:(NSRange)range isAttachment:(BOOL)attachment mimeTypeOverrides:(nullable NSDictionary*)overrides;
+
+/**
+ *  This method is the designated initializer for the class.
+ *
+ *  If cacheDisabled is set to YES, headers will be set so the browser does not
+ *  cache its responses.
+ */
+- (nullable instancetype)initWithFile:(NSString*)path byteRange:(NSRange)range isAttachment:(BOOL)attachment mimeTypeOverrides:(nullable NSDictionary*)overrides cacheDisabled:(BOOL)cacheDisabled;
 
 @end
 
